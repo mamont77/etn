@@ -1,0 +1,10 @@
+; $Id: captcha.info,v 1.3 2007/06/18 22:53:32 dww Exp $
+name = Captcha
+description = "Implements a captcha to registration, comment, contact and node entry forms."
+package = SPAM Control
+
+; Information added by drupal.org packaging script on 2007-06-21
+version = "5.x-2.2"
+project = "captcha"
+datestamp = "1182385503"
+

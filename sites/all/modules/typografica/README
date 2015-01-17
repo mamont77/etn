@@ -1,0 +1,21 @@
+This module adds a filter for making text corresponding to russian typographic rules.
+
+== In Russian: Windows-1251
+Модуль для Drupal (4.x), предоставляющий фильтр для обработки русской типографики.
+Доработан до Drupal 5.0.
+Основан на слегка модифицированном классе typografica версии 2.6. Оригинальный copyright:
+
+------------------------------------------------
+http://www.pixel-apes.com/typografica
+
+Copyright (c) 2004, Kuso Mendokusee <mailto:mendokusee@yandex.ru>
+All rights reserved.
+
+For LICENSE see license.txt
+------------------------------------------------
+
+Mike Lapshin
+enokatos@gmail.com
+
+vadbars (adding typografica.info for Drupal 5.x. :)
+vadbars@mail.ru

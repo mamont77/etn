@@ -1,0 +1,147 @@
+<?php
+// $Id: xmlsitemap.install,v 1.4.2.1 2007/05/07 04:37:31 darrenoh Exp $
+
+/**
+ * Implementation of hook_install().
+ */
+function xmlsitemap_install() {
+  switch ($GLOBALS['db_type']) {
+    case 'mysql':
+    case 'mysqli':
+      db_query("CREATE TABLE {xmlsitemap} (
+        nid int,
+        pid int,
+        last_changed int(11),
+        previously_changed int(11),
+        last_comment int(11),
+        previous_comment int(11),
+        priority_override decimal(2,1),
+        PRIMARY KEY (nid)
+      ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
+      db_query("CREATE TABLE {xmlsitemap_additional} (
+        path varchar(128) NOT NULL default '',
+        pid int,
+        last_changed int(11),
+        previously_changed int(11),
+        priority decimal(2,1),
+        PRIMARY KEY (path)
+      ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
+      break;
+    case 'pgsql':
+      db_query("CREATE TABLE {xmlsitemap} (
+        nid integer,
+        pid integer,
+        last_changed integer,
+        previously_changed integer,
+        last_comment integer,
+        previous_comment integer,
+        priority_override real,
+        PRIMARY KEY (nid)
+      );");
+      db_query("CREATE TABLE {xmlsitemap_additional} (
+        path varchar(128) NOT NULL default '',
+        pid integer,
+        last_changed integer,
+        previously_changed integer,
+        priority real,
+        PRIMARY KEY (path)
+      );");
+      break;
+  }
+  $gsitemap = db_result(db_query("SELECT status FROM {system} WHERE type = 'module' AND name = '%s'", 'gsitemap'));
+  if ($gsitemap === 1 || $gsitemap === 0) {
+    _xmlsitemap_gsitemap();
+  }
+}
+
+/**
+ * Replace gsitemap tables and variables with xmlsitemap tables and
+ * variables.
+ * @return Nothing
+ */
+function _xmlsitemap_gsitemap() {
+  db_query('INSERT INTO {xmlsitemap} SELECT * FROM {gsitemap}');
+  db_query('DROP TABLE {gsitemap}');
+  db_query('INSERT INTO {xmlsitemap_additional} SELECT * FROM {gsitemap_additional}');
+  db_query('DROP TABLE {gsitemap_additional}');
+  variable_set('xmlsitemap_ask_com_submit', variable_get('gsitemap_ask_com_submit', FALSE));
+  variable_del('gsitemap_ask_com_submit');
+  variable_set('xmlsitemap_ask_com_url', variable_get('gsitemap_ask_com_url', 'http://submissions.ask.com/ping?sitemap='. url('sitemap.xml', NULL, NULL, TRUE)));
+  variable_del('gsitemap_ask_com_url');
+  variable_set('xmlsitemap_changed', variable_get('gsitemap_changed', FALSE));
+  variable_del('gsitemap_changed');
+  variable_set('xmlsitemap_chunk_size', variable_get('gsitemap_chunk_size', 50000));
+  variable_del('gsitemap_chunk_size');
+  variable_set('xmlsitemap_chunk_count', variable_get('gsitemap_chunk_count', 0));
+  variable_del('gsitemap_chunk_count');
+  variable_set('xmlsitemap_commentwt', variable_get('gsitemap_commentwt', '0.5'));
+  variable_del('gsitemap_commentwt');
+  variable_set('xmlsitemap_countcom', variable_get('gsitemap_countcom', 1));
+  variable_del('gsitemap_countcom');
+  variable_set('xmlsitemap_cron_submit', variable_get('gsitemap_cron_submit', 0));
+  variable_del('gsitemap_cron_submit');
+  variable_set('xmlsitemap_frontpage', variable_get('gsitemap_frontpage', '1.0'));
+  variable_del('gsitemap_frontpage');
+  variable_set('xmlsitemap_google_submit', variable_get('gsitemap_google_submit', TRUE));
+  variable_del('gsitemap_google_submit');
+  variable_set('xmlsitemap_google_url', variable_get('gsitemap_google_url', 'http://www.google.com/webmasters/tools/ping?sitemap='. url('sitemap.xml', NULL, NULL, TRUE)));
+  variable_del('gsitemap_google_url');
+  variable_set('xmlsitemap_logacc', variable_get('gsitemap_logacc', FALSE));
+  variable_del('gsitemap_logacc');
+  variable_set('xmlsitemap_priority', variable_get('gsitemap_priority', '0.5'));
+  variable_del('gsitemap_priority');
+  variable_set('xmlsitemap_promotewt', variable_get('gsitemap_promotewt', '0.3'));
+  variable_del('gsitemap_promotewt');
+  variable_set('xmlsitemap_showterms', variable_get('gsitemap_showterms', FALSE));
+  variable_del('gsitemap_showterms');
+  variable_set('xmlsitemap_showusers', variable_get('gsitemap_showusers', FALSE));
+  variable_del('gsitemap_showusers');
+  variable_set('xmlsitemap_submit', variable_get('gsitemap_submit', FALSE));
+  variable_del('gsitemap_submit');
+  variable_set('xmlsitemap_update', variable_get('gsitemap_update', FALSE));
+  variable_del('gsitemap_update');
+  variable_set('xmlsitemap_verify', variable_get('gsitemap_verify', ''));
+  variable_del('gsitemap_verify');
+  variable_set('xmlsitemap_yahoo_submit', variable_get('gsitemap_yahoo_submit', FALSE));
+  variable_del('gsitemap_yahoo_submit');
+  variable_set('xmlsitemap_yahoo_url', variable_get('gsitemap_yahoo_url', 'http://search.yahooapis.com/SiteExplorerService/V1/ping?sitemap='. url('sitemap.xml', NULL, NULL, TRUE)));
+  variable_del('gsitemap_yahoo_url');
+  foreach (node_get_types('names') as $type => $name) {
+    variable_set('xmlsitemap_'. $type .'wt', variable_get('gsitemap_'. $type .'wt', '0.1'));
+    variable_del('gsitemap_'. $type .'wt');
+  }
+  drupal_set_installed_schema_version('gsitemap', SCHEMA_UNINSTALLED);
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function xmlsitemap_uninstall() {
+  db_query('DROP TABLE {xmlsitemap}');
+  db_query('DROP TABLE {xmlsitemap_additional}');
+  variable_del('xmlsitemap_ask_com_submit');
+  variable_del('xmlsitemap_ask_com_url');
+  variable_del('xmlsitemap_changed');
+  variable_del('xmlsitemap_chunk_size');
+  variable_del('xmlsitemap_chunk_count');
+  variable_del('xmlsitemap_commentwt');
+  variable_del('xmlsitemap_countcom');
+  variable_del('xmlsitemap_cron_submit');
+  variable_del('xmlsitemap_frontpage');
+  variable_del('xmlsitemap_google_submit');
+  variable_del('xmlsitemap_google_url');
+  variable_del('xmlsitemap_logacc');
+  variable_del('xmlsitemap_priority');
+  variable_del('xmlsitemap_promotewt');
+  variable_del('xmlsitemap_showterms');
+  variable_del('xmlsitemap_showusers');
+  variable_del('xmlsitemap_submit');
+  variable_del('xmlsitemap_update');
+  variable_del('xmlsitemap_verify');
+  variable_del('xmlsitemap_yahoo_submit');
+  variable_del('xmlsitemap_yahoo_url');
+  foreach (node_get_types('names') as $type => $name) {
+    variable_del('xmlsitemap_'. $type .'wt');
+  }
+}
+

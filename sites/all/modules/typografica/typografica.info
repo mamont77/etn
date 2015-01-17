@@ -1,0 +1,13 @@
+; $Id: typografica.info,v 1.1 2007/03/12 20:59:16 vadbarsdrupalorg Exp $
+name = Typografica
+description = Adds additional filter for making text corresponding to russian typographic rules
+
+; Information added by drupal.org packaging script on 2007-03-13
+version = "5.x-1.x-dev"
+project = "Typografica"
+
+
+; Information added by drupal.org packaging script on 2007-03-12
+version = "5.x-1.1"
+project = "typografica"
+

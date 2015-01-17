@@ -1,0 +1,149 @@
+<?php
+////////////////////////////////////////////////////////
+//                                                    //
+//          by: Kevin A. Hoogheem                     //
+//                   (kevin@hoogheem.net)             //
+//                                                    //
+// You can redistribute this software under the terms //
+// of the GNU General Public License as published by  //
+// the Free Software Foundation; either version 2 of  //
+// the License, or (at your option) any later         //
+// version.                                           //
+//                                                    //
+// You should have received a copy of the GNU General //
+// Public License along with this program; if not,    //
+// write to the Free Software Foundation, Inc., 59    //
+// Temple Place, Suite 330, Boston, MA 02111-1307 USA //
+//                                                    //
+//     Copyright 2004 by Kevin A. Hoogheem            //
+//   Please keep this copyright information intact.   //
+////////////////////////////////////////////////////////
+
+/** 
+ * DRUPAL 5 version 
+ */ 
+
+/** 
+ * Implementation of hook_help(). 
+ * 
+ * Throughout Drupal, hook_help() is used to display help text at the top of 
+ * pages. Some other parts of Drupal pages get explanatory text from these hooks 
+ * as well. We use it here to provide a description of the module on the 
+ * module administration page. 
+ */ 
+function snap_help($section) { 
+  switch ($section) { 
+    case 'admin/help#leech':
+    case 'admin/modules#description': 
+      // This description is shown in the listing at admin/modules. 
+      return t('Implementation of the snap site preview.'); 
+  } 
+} 
+
+$header= snap_javascript();
+drupal_set_html_head($header);
+
+function snap_menu($may_cache) {
+  $items = array();
+  if ($may_cache) {
+    $items[] = array('path' => 'admin/settings/snap',
+      'title' => t('Snap settings'),
+      'callback' => 'drupal_get_form',
+      'callback arguments' => array('snap_admin_settings'),
+      'access' => user_access('administer site configuration'),
+      'weight' => 2,
+    );
+  }
+
+  return $items;
+}
+
+/** 
+ * Implementation of hook_perm(). 
+ * 
+ * Since we are limiting the ability to create new nodes to certain users, 
+ * we need to define what those permissions are here. We also define a permission 
+ * to allow users to edit the nodes they created. 
+ */ 
+function snap_perm() { 
+  return array('view snap preview'); 
+} 
+
+
+
+function snap_admin_settings() {
+  
+  $form['snap_key'] = array( 
+    '#type' => 'textfield', 
+    '#title' => t('Snap Key'), 
+    '#required' => TRUE, 
+    '#default_value' => variable_get("snap_key", "put key here"),
+    '#description' => t('Copy your key here.  <a class="snap_nopreview" href="http://www.snap.com/about/spa1A.php" target="_new">Get free key here</a>'),
+  ); 
+  
+  $form[snap_preview_internal] = array(
+		'#type' => 'checkbox',
+		'#title' => t('Preview internal links'),
+		'#default_value' => variable_get(snap_preview_internal, 0),
+		'#description' => t('Preview internal links (we do not recommend turning this on).'),
+	);
+ 
+  $form[snap_searchbox] = array(
+		'#type' => 'checkbox',
+		'#title' => t('Snap Search box'),
+		'#default_value' => variable_get(snap_searchbox, 0),
+		'#description' => t('Include a Search box in preview window.'),
+	);
+
+  $form[snap_linktype] = array(
+    '#type' => 'select',
+    '#title' => t('Show link with'),
+    '#default_value' => variable_get(snap_linktype, 0),
+    '#options' => array(0 => t('Link Only'), 
+                        1 => t('Icon and Link (both)'), 
+                        2 => t('Icon and Link (icon only)')),
+    '#description' => t('Set preview to show on both a icon and link, icon only, or link only'),
+  );
+
+  $form[snap_theme] = array(
+    '#type' => 'select',
+    '#title' => t('Theme'),
+    '#default_value' => variable_get(snap_theme, 'silver'),
+    '#options' => array('silver' => t('Silver (default)'), 
+                        'ice' => t('Ice (light blue)'), 
+                        'green' => t('Green (light green)'), 
+                        'linen' => t('Linen'),
+                        'orange' => t('Orange'),
+                        'pink' => t('Pink'),
+                        'purple' => t('Purple'),
+                        'asphalt' => t('Asphalt'),
+                        ),
+    '#description' => t('Set popup with a new theme'),
+  );
+
+  
+  return system_settings_form($form);
+}
+
+
+function snap_javascript(){
+  global $base_url;
+  
+  if($user->uid == 0 || user_access('view snap preview')){
+    $output = '<script defer="defer" id="snap_preview_anywhere" type="text/javascript" src="http://spa.snap.com/snap_preview_anywhere.js?ap=1&amp;&amp;si='.variable_get(snap_preview_internal, 0).'&amp;key='.variable_get('snap_key', "put key here").'&amp;sb='.variable_get(snap_searchbox, 0).'&amp;oi=0&amp;';
+    switch(variable_get(snap_linktype, 0)){
+      case 0:
+      break;
+      case 1:
+        $output .= 'link_icon=on&amp;preview_trigger=both';
+      break;
+      case 2:
+        $output .= 'link_icon=on&amp;preview_trigger=icon';
+      break;
+    }
+    $output .= '&amp;th='.variable_get(snap_theme, 'silver').'&amp;domain='.$base_url.'"></script>';
+  return $output;   
+  }
+}
+
+?>
